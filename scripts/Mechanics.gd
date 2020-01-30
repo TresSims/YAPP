@@ -1,16 +1,14 @@
 extends KinematicBody
 
-const GRAVITY = 9.8
+const GRAVITY = 2
 var vel = Vector3()
-const MAX_SPEED = 100
-const JUMP_SPEED = 70
+const MAX_SPEED = 30
+const JUMP_SPEED = 30
 const ACCEL = 100
 
-const DEACCEL = 2
+const DEACCEL = .2
 const MAX_SLOPE_ANGLE = 50
 
-var camera
-var rotation_helper
 func _physics_process(delta):
 	process_input(delta)
 	process_movement(delta)
@@ -37,8 +35,8 @@ func process_movement(delta):
 	
 func process_decay(delta):
 	if not Input.is_action_pressed("ui_left") and not Input.is_action_pressed("ui_right"):
-		vel.x -= DEACCEL * delta
-	if(vel.x < .5):
+		vel.x *= DEACCEL
+	if(abs(vel.x) < .5):
 		vel.x = 0
 	
 	vel.y -= GRAVITY
