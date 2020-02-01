@@ -1,7 +1,6 @@
-extends KinematicBody
+extends RigidBody
 
 const GRAVITY = 2
-var vel = Vector3()
 const MAX_SPEED = 30
 const JUMP_SPEED = 30
 const ACCEL = 100
@@ -25,10 +24,6 @@ func process_input(delta):
 			vel.x = -MAX_SPEED
 	
 	print(vel.x)
-	
-	if is_on_floor():
-		if Input.is_action_just_pressed("ui_up"):
-			vel.y = JUMP_SPEED
 
 func process_movement(delta):
 	move_and_slide(vel, Vector3(0, 1, 0)) 
