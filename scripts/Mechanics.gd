@@ -1,12 +1,11 @@
 extends RigidBody
 
-const GRAVITY = 2
-const MAX_SPEED = 30
-const JUMP_SPEED = 30
-const ACCEL = 100
+const ACCEL = 30
+const JUMP_SPEED = 500
 
-const DEACCEL = .2
-const MAX_SLOPE_ANGLE = 50
+const MAX_SPEED = 25
+
+var vel = Vector3(0,0,0);
 
 func _physics_process(delta):
 	process_input(delta)
@@ -14,24 +13,28 @@ func _physics_process(delta):
 	process_decay(delta)
 
 func process_input(delta):
+	vel = Vector3(0, 0, 0);
 	if Input.is_action_pressed("ui_right"):
-		vel.x += delta * ACCEL
-		if vel.x > MAX_SPEED:
-			vel.x = MAX_SPEED
+		vel.x += 1
 	if Input.is_action_pressed("ui_left"):
-		vel.x -= delta * ACCEL
-		if vel.x < -MAX_SPEED:
-			vel.x = -MAX_SPEED
+		vel.x -= 1
 	
-	print(vel.x)
-
-func process_movement(delta):
-	move_and_slide(vel, Vector3(0, 1, 0)) 
+	if Input.is_action_just_pressed("ui_up"):
+		vel.y += 1
 	
-func process_decay(delta):
-	if not Input.is_action_pressed("ui_left") and not Input.is_action_pressed("ui_right"):
-		vel.x *= DEACCEL
-	if(abs(vel.x) < .5):
+	if not Input.is_action_pressed("ui_up"):
+		if linear_velocity.y > 0:
+			linear_velocity.y  = 0
+	
+	if abs(linear_velocity.x) > MAX_SPEED:
 		vel.x = 0
 	
-	vel.y -= GRAVITY
+	vel.x *= ACCEL
+	vel.y *= JUMP_SPEED
+
+func process_movement(delta):
+	add_central_force(vel)
+	print(linear_velocity)
+
+func process_decay(delta):
+	vel = Vector3(0, 0, 0)
