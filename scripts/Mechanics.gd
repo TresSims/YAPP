@@ -5,7 +5,9 @@ const JUMP_SPEED = 500
 
 const MAX_SPEED = 25
 
-var vel = Vector3(0,0,0);
+var vel = Vector3(0,0,0)
+
+onready var DownRay = get_node("DownRay")
 
 func _physics_process(delta):
 	process_input(delta)
@@ -19,7 +21,7 @@ func process_input(delta):
 	if Input.is_action_pressed("ui_left"):
 		vel.x -= 1
 	
-	if Input.is_action_just_pressed("ui_up"):
+	if Input.is_action_just_pressed("ui_up")  && on_ground():
 		vel.y += 1
 	
 	if not Input.is_action_pressed("ui_up"):
@@ -38,3 +40,6 @@ func process_movement(delta):
 
 func process_decay(delta):
 	vel = Vector3(0, 0, 0)
+
+func on_ground():
+	return DownRay.is_colliding()
