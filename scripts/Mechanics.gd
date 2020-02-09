@@ -15,7 +15,6 @@ func _physics_process(delta):
 	process_decay(delta)
 
 func process_input(delta):
-	vel = Vector3(0, 0, 0);
 	if Input.is_action_pressed("ui_right"):
 		vel.x += 1
 	if Input.is_action_pressed("ui_left"):
