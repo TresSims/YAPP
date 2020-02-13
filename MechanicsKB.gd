@@ -1,4 +1,4 @@
-extends RigidBody
+extends KinematicBody
 
 const ACCEL = 1.5
 const MAX_SPEED = 15
@@ -10,6 +10,8 @@ const GRAVITY = .3
 const SLIP = .5
 const MAX_HOLD_TIME = 1.5
 
+var linear_velocity = Vector3(0, 0, 0)
+
 var HOLD_TIME = MAX_HOLD_TIME
 var vel = Vector3(0,0,0)
 var state = "FREE"
@@ -18,38 +20,31 @@ var state_changed = false
 onready var DownRay = get_node("DownRay")
 onready var collider = get_node("CollisionShape")
 
-func _physics_process(delta):
+func _process(delta):
 	process_input(delta)
-
-func _integrate_forces(delta):
 	process_movement(delta)
+	move_and_slide(linear_velocity, Vector3(0, 1, 0))
 	process_decay(delta)
+	process_state_change()
 	state_changed = false
+	print(state)
+	print(linear_velocity)
+	
 
 func process_input(delta):
-	# Check for new wall collisions
-	if false and state != "WALL":
-		state = "WALL"
-		state_changed = true
-		linear_velocity = Vector3(0, 0, 0)
-	if false and state != "WALL":
-		state = "WALL"
-		state_changed = true
-		linear_velocity = Vector3(0, 0, 0)
-	
 	if state == "WALL":
 		HOLD_TIME -= delta
 		if HOLD_TIME <= 0:
 			print("slip")
 			vel.y -= GRAVITY * SLIP
 		
-		if Input.is_action_pressed("ui_right") and false:
+		if Input.is_action_pressed("ui_right"):
 			vel.x += ACCEL * JERK
 			vel.y += JUMP_SPEED
 			linear_velocity.y = 0
 			state = "FREE"
 		
-		if Input.is_action_pressed("ui_left") and false:
+		if Input.is_action_pressed("ui_left"):
 			vel.x -= ACCEL * JERK
 			vel.y += JUMP_SPEED
 			linear_velocity.y = 0
@@ -71,9 +66,12 @@ func process_input(delta):
 			vel.x *= JERK
 			print("Jerk Input")
 	
-		if Input.is_action_pressed("ui_up")  and on_ground() and linear_velocity.y <= 0:
+		if Input.is_action_pressed("ui_up")  and is_on_floor() and linear_velocity.y <= 0:
 			vel.y += JUMP_SPEED
 			print("Jump")
+		
+		if is_on_floor():
+			HOLD_TIME = MAX_HOLD_TIME
 
 func process_movement(delta):
 	linear_velocity += vel
@@ -91,13 +89,22 @@ func process_decay(delta):
 				linear_velocity.x *= DECAY
 		else:
 			linear_velocity.x = 0
-		if not on_ground():
+		if not is_on_floor():
 			linear_velocity.y -= GRAVITY
 			
 		if(linear_velocity.x > MAX_SPEED):
 			linear_velocity.x = MAX_SPEED
 		if(linear_velocity.x < -MAX_SPEED):
 			linear_velocity.x = -MAX_SPEED
+		if is_on_floor():
+			linear_velocity.y = 0
 
-func on_ground():
-	return DownRay.is_colliding()
+func process_state_change():
+	if is_on_wall() and state != "WALL":
+		state = "WALL"
+		state_changed = true
+		linear_velocity = Vector3(0, 0, 0)
+	if is_on_wall() and state != "WALL":
+		state = "WALL"
+		state_changed = true
+		linear_velocity = Vector3(0, 0, 0)
