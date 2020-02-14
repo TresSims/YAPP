@@ -15,6 +15,7 @@ var linear_velocity = Vector3(0, 0, 0)
 var HOLD_TIME = MAX_HOLD_TIME
 var vel = Vector3(0,0,0)
 var state = "FREE"
+var wall_side = 0
 var state_changed = false
 
 onready var DownRay = get_node("DownRay")
@@ -27,30 +28,31 @@ func _process(delta):
 	process_decay(delta)
 	process_state_change()
 	state_changed = false
-	print(state)
-	print(linear_velocity)
-	
+	print(wall_side)
 
 func process_input(delta):
 	if state == "WALL":
+		var max_mag = 0.0
+		for x in range(0, get_slide_count() - 1):
+			var collision = get_slide_collision(x).get_normal()
+			if abs(collision.x) > max_mag:
+				max_mag = abs(collision.x)
+				wall_side = collision.x
 		HOLD_TIME -= delta
 		if HOLD_TIME <= 0:
-			print("slip")
 			vel.y -= GRAVITY * SLIP
 		
-		if Input.is_action_pressed("ui_right"):
+		if Input.is_action_pressed("ui_right") and wall_side > 0:
 			vel.x += ACCEL * JERK
 			vel.y += JUMP_SPEED
 			linear_velocity.y = 0
 			state = "FREE"
 		
-		if Input.is_action_pressed("ui_left"):
+		if Input.is_action_pressed("ui_left") and wall_side < 0:
 			vel.x -= ACCEL * JERK
 			vel.y += JUMP_SPEED
 			linear_velocity.y = 0
 			state = "FREE"
-		
-		print(HOLD_TIME)
 	
 	# Basic Ground and Air Movement
 	if state == "FREE":
@@ -58,17 +60,14 @@ func process_input(delta):
 			vel.x += ACCEL
 		if Input.is_action_just_pressed("ui_right") and linear_velocity.x < 0:
 			vel.x *= JERK
-			print("Jerk Input")
 		
 		if Input.is_action_pressed("ui_left"):
 			vel.x -= ACCEL
 		if Input.is_action_just_pressed("ui_left") and linear_velocity.x > 0:
 			vel.x *= JERK
-			print("Jerk Input")
 	
 		if Input.is_action_pressed("ui_up")  and is_on_floor() and linear_velocity.y <= 0:
 			vel.y += JUMP_SPEED
-			print("Jump")
 		
 		if is_on_floor():
 			HOLD_TIME = MAX_HOLD_TIME
@@ -76,7 +75,7 @@ func process_input(delta):
 func process_movement(delta):
 	linear_velocity += vel
 	if state == "FREE":
-		if not Input.is_action_pressed("ui_up"):
+		if Input.is_action_just_released("ui_up"):
 			if linear_velocity.y > 0:
 				linear_velocity.y  = 0
 	
@@ -108,3 +107,6 @@ func process_state_change():
 		state = "WALL"
 		state_changed = true
 		linear_velocity = Vector3(0, 0, 0)
+	
+	if is_on_floor():
+		state = "FREE"
