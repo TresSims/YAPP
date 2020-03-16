@@ -18,9 +18,6 @@ var state = "FREE"
 var wall_side = 0
 var state_changed = false
 
-onready var DownRay = get_node("DownRay")
-onready var collider = get_node("CollisionShape")
-
 func _process(delta):
 	process_input(delta)
 	process_movement(delta)
@@ -28,16 +25,9 @@ func _process(delta):
 	process_decay(delta)
 	process_state_change()
 	state_changed = false
-	print(wall_side)
 
 func process_input(delta):
 	if state == "WALL":
-		var max_mag = 0.0
-		for x in range(0, get_slide_count() - 1):
-			var collision = get_slide_collision(x).get_normal()
-			if abs(collision.x) > max_mag:
-				max_mag = abs(collision.x)
-				wall_side = collision.x
 		HOLD_TIME -= delta
 		if HOLD_TIME <= 0:
 			vel.y -= GRAVITY * SLIP
@@ -78,6 +68,13 @@ func process_movement(delta):
 		if Input.is_action_just_released("ui_up"):
 			if linear_velocity.y > 0:
 				linear_velocity.y  = 0
+	if state == "WALL":
+		var max_mag = 0.0
+		for x in range(0, get_slide_count() - 1):
+			var collision = get_slide_collision(x).get_normal()
+			if abs(collision.x) > max_mag:
+				max_mag = abs(collision.x)
+				wall_side = collision.x
 	
 	
 func process_decay(delta):
